@@ -28,11 +28,14 @@ bat16 <- bats %>%
 bat19 <- bats %>% 
   filter(str_detect(date, "^2019"))
 
-# get call measures
-raw <- read.csv("/Users/jkvrtilek/Desktop/OSU/PhD/GitHub/LFS/vampire_call_measures_filtered_transformed.csv") %>% 
+# get call measures and add sample size
+raw <- read.csv("/Users/jkvrtilek/Desktop/OSU/PhD/GitHub/_LFS/call-convergence-2025/vampire_call_measures_transformed.csv") %>% 
   dplyr::select(sound.files:indicator) %>% 
   separate(sound.files, into=c('ds','date', 'bat', 'file', 'sel'), sep="_", remove = FALSE) %>% 
-  dplyr::select(!c(ds,file,sel))
+  dplyr::select(!c(ds,file,sel)) %>%
+  group_by(bat) %>% 
+  mutate(sample.size= n()) %>%
+  ungroup()
 
 # separate call measures by bat group
 dzoo <- raw %>% 
@@ -48,18 +51,12 @@ d19 <- raw %>%
 
 # ZOO DFA ------
 
-# get sample sizes
-dzoo2 <- dzoo %>%
-  group_by(bat) %>% 
-  mutate(sample.size= n()) %>%
-  ungroup()
-
 # look at sample sizes
-sort(unique(dzoo2$sample.size))
+sort(unique(dzoo$sample.size))
 
-# filter out less than 100 calls - loses 9 out of 31 bats
-dzoo3 <- dzoo2 %>% 
-  filter(sample.size > 100)
+# filter out less than 80 calls - loses 9 out of 31 bats
+use_zoo <- dzoo %>% 
+  filter(sample.size > 80)
 
 # classify calls to bat using a single dfa without cross validation
 dfa_zoo <- lda(bat ~ 
@@ -99,7 +96,7 @@ dfa_zoo <- lda(bat ~
               meanslope+
               segments,
             CV=F, 
-            data=dzoo3)
+            data=use_zoo)
 
 # save all DFA loadings sorted by absolute value of DF1
 loadings_zoo <- 
@@ -111,8 +108,8 @@ write.csv(loadings_zoo, "familiar-dfa-loadings-zoo.csv")
 
 # get classification rates
 predictions_zoo <- predict(dfa_zoo)
-dzoo3$prediction <- predictions_zoo$class
-cm_zoo <- table(dzoo3$bat, dzoo3$prediction)
+use_zoo$prediction <- predictions_zoo$class
+cm_zoo <- table(use_zoo$bat, use_zoo$prediction)
 
 # get overall correct classification rate
 correct.cases <- sum(diag(cm_zoo))
@@ -121,18 +118,12 @@ accuracy_zoo <- correct.cases/all.cases
 
 # 2016 DFA ------
 
-# get sample sizes
-d16_2 <- d16 %>%
-  group_by(bat) %>% 
-  mutate(sample.size= n()) %>%
-  ungroup()
-
 # look at sample sizes
-sort(unique(d16_2$sample.size))
+sort(unique(d16$sample.size))
 
-# filter out less than 100 calls - loses 6 out of 45 bats
-d16_3 <- d16_2 %>% 
-  filter(sample.size > 100)
+# filter out less than 80 calls - loses 6 out of 45 bats
+use16 <- d16 %>% 
+  filter(sample.size > 80)
 
 # classify calls to bat using a single dfa without cross validation
 dfa16 <- lda(bat ~ 
@@ -172,7 +163,7 @@ dfa16 <- lda(bat ~
                  meanslope+
                  segments,
                CV=F, 
-               data=d16_3)
+               data=use16)
 
 # save all DFA loadings sorted by absolute value of DF1
 loadings16 <- 
@@ -184,8 +175,8 @@ write.csv(loadings16, "familiar-dfa-loadings-2016.csv")
 
 # get classification rates
 predictions16 <- predict(dfa16)
-d16_3$prediction <- predictions16$class
-cm16 <- table(d16_3$bat, d16_3$prediction)
+use16$prediction <- predictions16$class
+cm16 <- table(use16$bat, use16$prediction)
 
 # get overall correct classification rate
 correct.cases <- sum(diag(cm16))
@@ -194,18 +185,12 @@ accuracy16 <- correct.cases/all.cases
 
 # 2019 DFA ------
 
-# get sample sizes
-d19_2 <- d19 %>%
-  group_by(bat) %>% 
-  mutate(sample.size= n()) %>%
-  ungroup()
-
 # look at sample sizes
-sort(unique(d19_2$sample.size))
+sort(unique(d19$sample.size))
 
-# filter out less than 100 calls - loses 1 out of 23 bats
-d19_3 <- d19_2 %>% 
-  filter(sample.size > 100)
+# filter out less than 80 calls - loses 1 out of 23 bats
+use19 <- d19 %>% 
+  filter(sample.size > 80)
 
 # classify calls to bat using a single dfa without cross validation
 dfa19 <- lda(bat ~ 
@@ -245,7 +230,7 @@ dfa19 <- lda(bat ~
                  meanslope+
                  segments,
                CV=F, 
-               data=d19_3)
+               data=use19)
 
 # save all DFA loadings sorted by absolute value of DF1
 loadings19 <- 
@@ -257,10 +242,21 @@ write.csv(loadings19, "familiar-dfa-loadings-2019.csv")
 
 # get classification rates
 predictions19 <- predict(dfa19)
-d19_3$prediction <- predictions19$class
-cm19 <- table(d19_3$bat, d19_3$prediction)
+use19$prediction <- predictions19$class
+cm19 <- table(use19$bat, use19$prediction)
 
 # get overall correct classification rate
 correct.cases <- sum(diag(cm19))
 all.cases <- sum(cm19)
 accuracy19 <- correct.cases/all.cases
+
+
+# get list of bats used
+all_used <- rbind(use_zoo, use16, use19)
+used_bats <- unique(all_used$bat)
+familiar_bats <- bats %>%
+  dplyr::select(!date) %>% 
+  filter(bat_ID %in% used_bats) %>% 
+  distinct()
+
+write.csv(familiar_bats, "familiar_bats_used.csv")

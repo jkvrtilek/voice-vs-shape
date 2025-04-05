@@ -8,18 +8,6 @@ library(ggrepel)
 library(geomtextpath)
 library(ggh4x)
 
-
-# get LD1 from pre-intro DFA
-pre_met <- read.csv("/Users/jkvrtilek/Desktop/OSU/PhD/GitHub/voice-vs-shape/pre_dfa-loadings.csv") %>% 
-  mutate(pre = abs(LD1)) %>% 
-  select(X, pre)
-
-# get LD1 from post-intro DFA
-post_met <- read.csv("/Users/jkvrtilek/Desktop/OSU/PhD/GitHub/voice-vs-shape/post_dfa-loadings.csv") %>% 
-  mutate(post = abs(LD1)) %>% 
-  select(X, post)
-
-
 # get LD1s from familiar groups
 # zoo
 fam_zoo <- read.csv("/Users/jkvrtilek/Desktop/OSU/PhD/GitHub/voice-vs-shape/familiar-dfa-loadings-zoo.csv") %>% 
@@ -48,7 +36,7 @@ fam_mean <- fam %>%
 
 
 # get LD1s from never-met groups
-never_met <- read.csv("/Users/jkvrtilek/Desktop/OSU/PhD/GitHub/voice-vs-shape/abs_never-met-dfa-loadings.csv")
+never_met <- read.csv("/Users/jkvrtilek/Desktop/OSU/PhD/GitHub/voice-vs-shape/never-met-dfa-loadings_1000.csv")
 
 cn <- colnames(never_met)[-1]
 
@@ -59,8 +47,7 @@ never_met_mean <- never_met %>%
 
 
 # summary table
-all_LD1s <- join_all(list(never_met_mean, fam_mean, pre_met, post_met), by='X', type='left') %>% 
-  arrange(desc(abs(post)))
+all_LD1s <- join_all(list(never_met_mean, fam_mean), by='X', type='left')
 
 
 # make plot
@@ -73,8 +60,6 @@ percent_LD1s <- all_LD1s %>%
   mutate(measure = X) %>% 
   mutate(never_met = nm_avg/sum(nm_avg)) %>% 
   mutate(familiar = fam_avg/sum(fam_avg)) %>% 
-  mutate(pre_convergence = pre/sum(pre)) %>% 
-  mutate(post_convergence = post/sum(post)) %>% 
   select(measure, never_met:familiar)
 
 plot_data <- percent_LD1s %>% 
@@ -96,7 +81,6 @@ plot_data %>%
   geom_point(size = 3)+
   geom_line(size = 1)+
   scale_colour_manual(values=cpal) +
-  coord_cartesian(ylim = c(0,0.33)) +
   theme_bw() +
   theme(legend.position = "none") +
   theme(axis.text.y = element_text(size = 20),
@@ -127,7 +111,7 @@ plot_data %>%
                    direction = "y",
                    nudge_x = 0.2)
 
-# voice
+# t-test
 voice <- percent_LD1s %>% 
   mutate(diff = familiar - never_met) %>% 
   filter(measure %in% red)
