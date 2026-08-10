@@ -40,19 +40,22 @@ never_met <- raw %>%
 names <- colnames(never_met)
 
 # make plot for each variable----
-for (i in 2:36) {
-  q <- quantile(never_met[,i], probs = c(0.025,0.975))
-  ci <- data.frame(quantile=names(q), values = unname(q))
-  
-  
-  print(
-    p <- ggplot() + 
-    geom_histogram(data = never_met, aes(x = never_met[,i])) + 
-    geom_point(data = familiar, aes(x = familiar[,i], y = 0), color = "red", size = 5) +
-    geom_vline(data = ci, aes(xintercept = values, color = "red"), show.legend = F) +
-    xlab(paste(colnames(never_met)[i], colnames(familiar)[i], sep = "-"))
-  )
-  
-  png(p, filename = paste("~/plots/", names[i], ".png", sep = ""))
-}
+i <- 2
+
+# for some reason, a for loop won't work, so run the following code 35 times (until i = 37)
+q <- quantile(never_met[,i], probs = c(0.025,0.975))
+ci <- data.frame(quantile=names(q), values = unname(q))
+
+png(filename = paste(names[i], ".png", sep = ""), width = 3, height = 4, units = "in", res = 200)
+
+ggplot() + 
+  geom_histogram(data = never_met, aes(x = never_met[,i])) + 
+  geom_point(data = familiar, aes(x = familiar[,i], y = 0), color = "red", size = 5) +
+  geom_vline(data = ci, aes(xintercept = values, color = "red"), show.legend = F) +
+  xlab(paste(colnames(never_met)[i], colnames(familiar)[i], sep = "-"))
+
+dev.off()
+
+i <- i+1
+
 

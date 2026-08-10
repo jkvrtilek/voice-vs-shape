@@ -29,12 +29,12 @@ bat19 <- bats %>%
   filter(str_detect(date, "^2019"))
 
 # get call measures and add sample size
-raw <- read.csv("/Users/jkvrtilek/Desktop/OSU/PhD/GitHub/_LFS/call-convergence-2025/vampire_call_measures_transformed.csv") %>% 
+raw <- read.csv("/Users/jkvrtilek/Desktop/OSU/PhD/GitHub/_Figshare/call-convergence-2025/vampire_call_measures_transformed.csv") %>% 
   dplyr::select(sound.files:indicator) %>% 
   separate(sound.files, into=c('ds','date', 'bat', 'file', 'sel'), sep="_", remove = FALSE) %>% 
   dplyr::select(!c(ds,file,sel)) %>%
   group_by(bat) %>% 
-  mutate(sample.size= n()) %>%
+  dplyr::mutate(sample.size= n()) %>%
   ungroup()
 
 # separate call measures by bat group

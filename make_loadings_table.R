@@ -24,7 +24,7 @@ fam19 <- read.csv("/Users/jkvrtilek/Desktop/OSU/PhD/GitHub/voice-vs-shape/famili
   mutate(b19 = abs(LD1)) %>% 
   select(X, b19)
 
-# get average loading percentage for each variable
+# get average loading for each variable
 fam <- join_all(list(fam_zoo, fam16, fam19), by='X', type='left') 
 
 fn <- colnames(fam)[-1]
@@ -70,6 +70,11 @@ plot_data <- percent_LD1s %>%
   mutate(color = case_when(measure %in% green ~ "green",
                            measure %in% red ~ "red"))
 
+# labels for zoomed-out plot
+labels <- plot_data %>% 
+  filter(group != "never_met") %>% 
+  filter(loadings > 0.025)
+
 plot_data$group <- factor(plot_data$group, levels = c("never_met","familiar"))
 
 cpal <- c("#009E73","#D55E00")
@@ -87,7 +92,12 @@ plot_data %>%
         axis.text.x = element_text(size = 20),
         axis.title.y = element_text(size = 22),
         axis.title.x = element_text(size = 22),
-        strip.text = element_text(size= 24))
+        strip.text = element_text(size= 24)) +
+  geom_label_repel(data = labels,
+                   aes(label = measure),
+                   max.overlaps = 20,
+                   direction = "y",
+                   nudge_x = 0.2)
 
 
 # zoomed in

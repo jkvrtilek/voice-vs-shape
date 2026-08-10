@@ -13,12 +13,12 @@ library(tidyverse)
 setwd("/Users/jkvrtilek/Desktop/OSU/PhD/GitHub/voice-vs-shape")
 
 # get call measures
-raw <- read.csv("/Users/jkvrtilek/Desktop/OSU/PhD/GitHub/_LFS/call-convergence-2025/vampire_call_measures_transformed.csv") %>% 
+raw <- read.csv("/Users/jkvrtilek/Desktop/OSU/PhD/GitHub/_Figshare/call-convergence-2025/vampire_call_measures_transformed.csv") %>% 
   dplyr::select(sound.files:indicator) %>% 
   separate(sound.files, into=c('ds','date', 'bat', 'file', 'sel'), sep="_", remove = FALSE) %>% 
   dplyr::select(!c(ds,file,sel)) %>%
   group_by(bat) %>% 
-  mutate(sample.size= n()) %>%
+  dplyr::mutate(sample.size= n()) %>%
   ungroup()
 
 # make sample size filter
@@ -157,10 +157,8 @@ for (i in 1:nrow(to_run)) {
   all.cases <- sum(cm)
   accuracy <- correct.cases/all.cases
   
-  classification_rate[i] <- accuracy
 }
 
 load_df <- data.frame(Reduce(cbind, loadings))
 
 write.csv(load_df, "never-met-dfa-loadings_1000.csv")
-write.csv(classification_rate, "classification_rate_1000.csv")
